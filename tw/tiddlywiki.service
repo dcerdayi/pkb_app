@@ -21,6 +21,5 @@ Environment="TW_IMAGETAG=latest"
 EnvironmentFile=/etc/tiddlywiki/%N.conf
 ExecStartPre=-/usr/bin/docker stop %N
 ExecStartPre=-/usr/bin/docker rm %N
-ExecStartPre=/usr/bin/docker pull nicolaw/tiddlywiki
-ExecStart=/usr/bin/docker run -p ${TW_PORT}:${TW_PORT} -e TW_PORT=${TW_PORT} --env-file /etc/tiddlywiki/%N.conf --user ${TW_DOCKERUID}:${TW_DOCKERGID} -v ${TW_DOCKERVOLUME}:/var/lib/tiddlywiki --name %N nicolaw/tiddlywiki:${TW_IMAGETAG}
+ExecStart=/usr/bin/docker run -p ${TW_PORT}:${TW_PORT} -e TW_PORT=${TW_PORT} --env-file /etc/tiddlywiki/%N.conf --user ${TW_DOCKERUID}:${TW_DOCKERGID} -v ${TW_DOCKERVOLUME}:/var/lib/tiddlywiki --name %N dce/tiddlywiki:${TW_IMAGETAG}
 ExecStop=-/usr/bin/docker stop %N

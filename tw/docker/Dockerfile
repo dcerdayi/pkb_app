@@ -13,16 +13,12 @@ RUN apk add libcap binutils \
  && setcap 'cap_net_bind_service=+ep' /usr/local/bin/node \
  && strip /usr/local/bin/node \
  && apk del libcap binutils \
-
  && apk del libc-utils musl-utils scanelf apk-tools \
  && rm -Rf /lib/apk /var/cache/apk /etc/apk /usr/share/apk \
  && find ~root/ ~node/ -mindepth 1 -delete \
-
  && mkdir -p /var/lib/tiddlywiki \
  && chown -R ${USER}:${USER} /var/lib/tiddlywiki \
-
  && npm install --only=production -g "tiddlywiki@${TW_VERSION}" \
-
  && find /usr/local/include/node/openssl/archs -type d -mindepth 1 -maxdepth 1 | grep -vi "/$(uname -s)-$(uname -m)$" | xargs rm -Rf \
  && rm -Rf /usr/local/lib/node_modules/npm \
  && rm -f /usr/local/bin/npm \
