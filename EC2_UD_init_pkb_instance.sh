@@ -131,10 +131,9 @@ fi
 # Section: GIT Repo Cloning
 # ========================================================================
 
-
 # Install git
 log_message "Installing Git"
-yum update -y || { log_message "WARNING:Failed to update packages" }
+yum update -y || { log_message "WARNING:Failed to update packages"; }
 yum install git -y || { log_message "Failed to install git"; exit 1; }
 log_message "Git successfully installed."
 
@@ -163,13 +162,12 @@ log_message "Removing private key: ${GIT_SECRET_LOCAL_LOC}"
 rm -f "${GIT_SECRET_LOCAL_LOC}" || { log_message "Failed to remove private key: ${GIT_SECRET_LOCAL_LOC}"; exit 1; }
 log_message "log: GitHub Deploy Key (Private) removed"
 
-
 # ========================================================================
 # Section: TW via Docker Install
 # ========================================================================
 sleep 2
 
-yum update -y || { log_message "WARNING:Failed to update packages" }
+yum update -y || { log_message "WARNING:Failed to update packages"; }
 yum install docker -y || { log_message "Failed to install docker"; exit 1; }
 
 TW_DATA_LOC="${MOUNT_POINT}/tiddlywiki/"
@@ -186,65 +184,9 @@ systemctl start docker.service
 sleep 10
 
 docker volume create --name tiddlywiki --opt type=none --opt device="${TW_DATA_LOC}" --opt o=bind
-
-docker build --no-cache -t dce/tiddlywiki:latest "${REPO_CLONE_DIR}/tw/docker/"
+docker build --no-cache -t "dce/tiddlywiki:latest" "${REPO_CLONE_DIR}/tw/docker/"
 
 systemctl enable tiddlywiki.service
 systemctl start tiddlywiki.service
+exit 0
 
-# TODO HaaS
-
-# ''' SAMPLE CODE from : nicolaw/tiddlywiki/aws-amzn2-hvm-gp2.pkr.hcl
-#build {
-#  name = "tiddlywiki"
-#
-#  dynamic "source" {
-#    for_each = local.architecture_instance_type_map
-#    labels   = ["amazon-ebs.default"]
-#
-#    content {
-#      ami_name        = "tiddlywiki-ami-hvm-${formatdate("YYYYMMDD", timestamp())}-${source.key}-gp2"
-#      ami_description = "TiddlyWiki Linux AMI ${formatdate("YYYYMMDD", timestamp())} ${source.key} HVM gp2"
-#      instance_type   = source.value
-#
-#      source_ami_filter {
-#        filters = {
-#          name                = "amzn2-ami-hvm-2.0.*"
-#          root-device-type    = "ebs"
-#          virtualization-type = "hvm"
-#          architecture        = source.key
-#          owner-alias         = "amazon"
-#        }
-#        most_recent = true
-#        owners      = ["137112412989"]
-#      }
-#    }
-#  }
-#
-#  provisioner "file" {
-#    sources = [
-#      "tiddlywiki.service",
-#      "tiddlywiki.conf",
-#    ]
-#    destination = "/tmp/"
-#  }
-#
-#  provisioner "shell" {
-#    inline = [
-#      "sleep 10",
-#      "sed -i 's/^[[:space:]]*#[[:space:]]*TW_PORT=.*/TW_PORT=80/' /tmp/tiddlywiki.conf",
-#      "sudo mkdir -pv /etc/tiddlywiki/ /home/ec2-user/tiddlywiki/",
-#      "sudo mv -v /tmp/tiddlywiki.service /etc/systemd/system/tiddlywiki.service",
-#      "sudo mv -v /tmp/tiddlywiki.conf /etc/tiddlywiki/tiddlywiki.conf",
-#      "sudo yum update -y",
-#      "sudo yum install -y docker",
-#      "sudo systemctl daemon-reload",
-#      "sudo systemctl enable docker.service",
-#      "sudo systemctl start docker.service",
-#      "sleep 10",
-#      "sudo docker volume create --name tiddlywiki --opt type=none --opt device=/home/ec2-user/tiddlywiki --opt o=bind",
-#      "sudo systemctl enable tiddlywiki.service",
-#      "sudo systemctl start tiddlywiki.service",
-#    ]
-#  }
-#}
