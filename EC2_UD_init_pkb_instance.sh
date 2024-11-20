@@ -165,7 +165,7 @@ log_message "log: GitHub Deploy Key (Private) removed"
 # ========================================================================
 # Section: TW via Docker Install
 # ========================================================================
-sleep 2
+sleep 5
 
 yum update -y || { log_message "WARNING:Failed to update packages"; }
 yum install docker -y || { log_message "Failed to install docker"; exit 1; }
@@ -177,16 +177,24 @@ mkdir -pv /etc/tiddlywiki/ "${TW_DATA_LOC}" || { log_message "Failed to create d
 cp -v "${REPO_CLONE_DIR}/tw/tiddlywiki.service" /etc/systemd/system/
 cp -v "${REPO_CLONE_DIR}/tw/tiddlywiki.conf" /etc/tiddlywiki/
 
+cp -v "${REPO_CLONE_DIR}/tw/tw_credentials.csv" "${TW_DATA_LOC}"
+cp -v "${REPO_CLONE_DIR}/tw/tw_key.pem" "${TW_DATA_LOC}"
+cp -v "${REPO_CLONE_DIR}/tw/tw_server.crt" "${TW_DATA_LOC}"
+
+
 systemctl daemon-reload
 systemctl enable docker.service
 systemctl start docker.service
 
-sleep 10
+sleep 5
 
 docker volume create --name tiddlywiki --opt type=none --opt device="${TW_DATA_LOC}" --opt o=bind
 docker build --no-cache -t "dce/tiddlywiki:latest" "${REPO_CLONE_DIR}/tw/docker/"
 
 systemctl enable tiddlywiki.service
 systemctl start tiddlywiki.service
+
+rm -rfv "${TMP_DIR}"
+
 exit 0
 

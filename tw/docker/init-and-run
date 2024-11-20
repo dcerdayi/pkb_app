@@ -15,15 +15,17 @@ main () {
   fi
 
   # shellcheck disable=SC2086
-  exec /usr/bin/env node $NODE_OPTIONS "$TW5" "$TW_WIKINAME" --server \
-    "$TW_PORT" \
-    "$TW_ROOTTIDDLER" \
-    "$TW_RENDERTYPE" \
-    "$TW_SERVETYPE" \
-    "$TW_USERNAME" \
-    "$TW_PASSWORD" \
-    "$TW_HOST" \
-    "$TW_PATHPREFIX"
+  exec /usr/bin/env node $NODE_OPTIONS "$TW5" "$TW_WIKINAME" --listen \
+      port="$TW_PORT" \
+      host="$TW_HOST" \
+      root-tiddler="$TW_ROOTTIDDLER" \
+      render-type="$TW_RENDERTYPE" \
+      serve-type="$TW_SERVETYPE" \
+      path-prefix="$TW_PATHPREFIX" \
+      tls-key="../tw_key.pem" \
+      tls-cert="../tw_server.crt" \
+      credentials="../tw_credentials.csv"
+      
 }
 
 main "$@"
