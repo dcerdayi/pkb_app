@@ -1,0 +1,84 @@
+- name: Configure TiddlyWiki instance
+  hosts: all
+  become: true
+  vars:
+    volume: "/dev/xvdf"
+    mount_point: "/mnt/kb_data"
+    filesystem: "ext4"
+    tw_data_loc: "/mnt/kb_data/tiddlywiki"
+    tmp_dir: "/tmp_dce/"
+
+  tasks:
+    - name: Mount the volume
+      mount:
+        path: "{{ mount_point }}"
+        src: "{{ volume }}"
+        fstype: "{{ filesystem }}"
+        state: mounted
+
+    # Install necessary software
+    - name: Install dependencies
+      yum:
+        name:
+          - git
+          - docker
+        state: present
+
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    # Configure TiddlyWiki
+    - name: Create directories for TiddlyWiki
+      file:
+        path: "{{ tw_data_loc }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copy TiddlyWiki config files to the instance
+      copy:
+        src: '{{item}}'
+        dest: "{{ tw_data_loc }}/"
+      loop:
+        - ./tw/tw_credentials.csv
+        - ./tw/tw_key.pem
+        - ./tw/tw_server.crt
+
+    - name: Copy TiddlyWiki docker files to the instance
+      copy:
+        src: "./tw/docker/"
+        dest: "{{ tmp_dir }}/"
+
+    - name: Build TW Docker
+      community.docker.docker_image_build:
+        name: "dce/tiddlywiki:latest"
+        path: "{{ tmp_dir }}/"
+        nocache: true
+
+    - name: Create a volume with options
+      community.docker.docker_volume:
+        name: tiddlywiki
+        driver_options:
+          type: none
+          device: "{{ tw_data_loc }}"
+          o: bind
+
+    - name: Copy the systemd service file for TiddlyWiki
+      copy:
+        src: "./tw/tiddlywiki.conf"
+        dest: /etc/tiddlywiki/
+        mode: "0644"
+
+    - name: Copy the systemd service file for TiddlyWiki
+      copy:
+        src: "./tw/tiddlywiki.service"
+        dest: /etc/systemd/system/
+        mode: "0644"
+
+    - name: Enable and start TiddlyWiki service
+      systemd:
+        name: tiddlywiki.service
+        enabled: true
+        state: started
